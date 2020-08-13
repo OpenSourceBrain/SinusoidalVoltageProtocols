@@ -1,6 +1,6 @@
 <Lems xmlns="http://www.neuroml.org/lems/0.7.4"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.neuroml.org/lems/0.7.4 ../../LEMS/Schemas/LEMS/LEMS_v0.7.4.xsd"
+      xsi:schemaLocation="http://www.neuroml.org/lems/0.7.4 https://raw.githubusercontent.com/LEMS/LEMS/master/Schemas/LEMS/LEMS_v0.7.4.xsd"
       description="New voltage clamp type(s)">
 
 
@@ -9,16 +9,20 @@
 
         <Property name="weight" dimension="none" defaultValue="1"/> 
         
-        <Parameter name="active" dimension="none" description="Whether the voltage clamp is active (1) or inactive (0)."/>
         
-        <Parameter name="delay" dimension="time" description="Delay before switching from conditioningVoltage to testingVoltage."/>
-        <Parameter name="duration" dimension="time" description="Duration to hold at testingVoltage."/>
-        <Parameter name="conditioningVoltage" dimension="voltage" description="Target voltage before time delay"/>
-        <Parameter name="testingVoltage" dimension="voltage" description="Target voltage between times delay and delay + duration"/>
-        <Parameter name="returnVoltage" dimension="voltage" description="Target voltage after time duration"/>
+        <Parameter name="delay" dimension="time" description="Delay before switching...."/>
+        <Parameter name="duration" dimension="time" description="Duration to apply ..."/>
+        
+        <Parameter name="baselineVoltage" dimension="voltage" description="Target voltage before and after time delay"/>
+        
+        <Parameter name="sineAmplitude" dimension="voltage" description="Target..."/>
+        <Parameter name="sinePeriod" dimension="time" description="Target..."/>
         
         <Parameter name="simpleSeriesResistance" dimension="resistance" description="Current will be calculated by the difference in voltage between the target and parent, divided by this value"/>
 
+        
+        <Exposure name="targetVoltage" dimension="voltage"/> <!-- See below for usage -->
+        
         <!--TODO: remove! Only required as EventConnection is used in explicitInput to
         connect inputs to cells. Events aren't passed! ... -->
         <EventPort name="in" direction="in" description="Note this is not used here. Will be removed in future"/>
@@ -26,24 +30,29 @@
         <Dynamics>
 
             <StateVariable name="i" exposure="i" dimension="current"/>
+            
+            <DerivedVariable name="timeOffset" dimension="time" value="t-delay"/>
+            <DerivedVariable name="targetVoltage" dimension="voltage" exposure="targetVoltage" value="baselineVoltage + (sineAmplitude * sin(2 * 3.14159265359 * timeOffset/sinePeriod))"/>
 
             <OnEvent port="in"><!--TODO: remove, see above...
             <StateAssignment variable="i" value="0"/>-->
             </OnEvent>
 
-            <OnCondition test="active .eq. 1 .and. t .lt. delay">
-                <StateAssignment variable="i" value="weight * (conditioningVoltage - v) / simpleSeriesResistance"/>
+            <OnCondition test="t .lt. delay">
+                <StateAssignment variable="i" value="weight * (baselineVoltage - v) / simpleSeriesResistance"/>
             </OnCondition>
 
-            <OnCondition test="active .eq. 1 .and. t .geq. delay">
-                <StateAssignment variable="i" value="weight * (testingVoltage - v) / simpleSeriesResistance"/>
+            <OnCondition test="t .geq. delay">
+                <StateAssignment variable="i" value="weight * (targetVoltage - v) / simpleSeriesResistance"/>
             </OnCondition>
 
-            <OnCondition test="active .eq. 1 .and. t .gt. duration + delay">
-                <StateAssignment variable="i" value="weight * (returnVoltage - v) / simpleSeriesResistance"/>
+            <OnCondition test="t .gt. duration + delay">
+                <StateAssignment variable="i" value="weight * (baselineVoltage - v) / simpleSeriesResistance"/>
             </OnCondition>
 
         </Dynamics>
 
 
     </ComponentType>
+    
+</Lems>
