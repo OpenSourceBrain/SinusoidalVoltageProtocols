@@ -1,0 +1,49 @@
+<Lems xmlns="http://www.neuroml.org/lems/0.7.4"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.neuroml.org/lems/0.7.4 ../../LEMS/Schemas/LEMS/LEMS_v0.7.4.xsd"
+      description="New voltage clamp type(s)">
+
+
+    <ComponentType name="sinusoidalVoltageClamp" extends="baseVoltageDepPointCurrent"
+                   description="Voltage clamp. Work in progress...">
+
+        <Property name="weight" dimension="none" defaultValue="1"/> 
+        
+        <Parameter name="active" dimension="none" description="Whether the voltage clamp is active (1) or inactive (0)."/>
+        
+        <Parameter name="delay" dimension="time" description="Delay before switching from conditioningVoltage to testingVoltage."/>
+        <Parameter name="duration" dimension="time" description="Duration to hold at testingVoltage."/>
+        <Parameter name="conditioningVoltage" dimension="voltage" description="Target voltage before time delay"/>
+        <Parameter name="testingVoltage" dimension="voltage" description="Target voltage between times delay and delay + duration"/>
+        <Parameter name="returnVoltage" dimension="voltage" description="Target voltage after time duration"/>
+        
+        <Parameter name="simpleSeriesResistance" dimension="resistance" description="Current will be calculated by the difference in voltage between the target and parent, divided by this value"/>
+
+        <!--TODO: remove! Only required as EventConnection is used in explicitInput to
+        connect inputs to cells. Events aren't passed! ... -->
+        <EventPort name="in" direction="in" description="Note this is not used here. Will be removed in future"/>
+
+        <Dynamics>
+
+            <StateVariable name="i" exposure="i" dimension="current"/>
+
+            <OnEvent port="in"><!--TODO: remove, see above...
+            <StateAssignment variable="i" value="0"/>-->
+            </OnEvent>
+
+            <OnCondition test="active .eq. 1 .and. t .lt. delay">
+                <StateAssignment variable="i" value="weight * (conditioningVoltage - v) / simpleSeriesResistance"/>
+            </OnCondition>
+
+            <OnCondition test="active .eq. 1 .and. t .geq. delay">
+                <StateAssignment variable="i" value="weight * (testingVoltage - v) / simpleSeriesResistance"/>
+            </OnCondition>
+
+            <OnCondition test="active .eq. 1 .and. t .gt. duration + delay">
+                <StateAssignment variable="i" value="weight * (returnVoltage - v) / simpleSeriesResistance"/>
+            </OnCondition>
+
+        </Dynamics>
+
+
+    </ComponentType>

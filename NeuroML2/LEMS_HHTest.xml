@@ -1,0 +1,95 @@
+<Lems>
+
+    <!-- Example with Simple Hodgkin-Huxley cell specifying segment details-->
+
+    <!-- This is a file which can be read and executed by the LEMS Interpreter.
+    It imports the LEMS definitions of the core NeuroML 2 Components, 
+    imports in "pure" NeuroML 2 and contains some LEMS elements for running 
+    a simulation -->
+
+
+    <Target component="sim1"/>
+
+    <Include file="Cells.xml"/>
+    <Include file="Networks.xml"/>
+    <Include file="Simulation.xml"/>
+
+    <Include file="cells/HH/hhneuron.cell.nml"/>
+    
+    
+    
+    <!-- A voltage clamp with 3 clamp levels. Initially set to active=0, i.e. turned off! -->
+    <voltageClampTriple id="vClamp" 
+                        active = "1"
+                        delay="10ms" 
+                        duration="30ms"
+                        conditioningVoltage="-63.77mV" 
+                        testingVoltage="-50mV" 
+                        returnVoltage="-63.77mV" 
+                        simpleSeriesResistance="1e4ohm"/>
+
+    <network id="HHTutorial">
+                                                                                                                                                                                      
+        <notes>Network with a single cell based on the Hodgkin Huxley model with a voltage clamp</notes>
+    
+        <population id="hhpop" component="hhneuron" type="populationList" size="1">
+            <annotation>
+                <property tag="color" value="1 0 0"/>
+            </annotation>
+            <instance id="0">
+                <location x="0" y="0" z="0"/>
+            </instance>
+        </population>
+       
+        
+        <inputList id="VClampInput" component="vClamp" population="hhpop">
+            <input id="0" target="../hhpop/0/hhneuron" destination="synapses"/>
+        </inputList>
+        
+    </network>
+
+
+    <Simulation id="sim1" length="50ms" step="0.001ms" target="HHTutorial">
+    
+        <Display id="d1" title="Hodgkin-Huxley Neuron: V (mV)" timeScale="1ms" xmin="-5" xmax="55" ymin="-90" ymax="50">
+            <Line id="V (mV)" quantity="hhpop/0/hhneuron/v" scale="1mV" color="#000000" timeScale="1ms"/>
+        </Display>
+
+        <Display id="d2" title="Hodgkin-Huxley Neuron: Gating Variables" timeScale="1ms" xmin="-5" xmax="55" ymin="-0.1" ymax="1.1">
+            <Line id="m" quantity="hhpop/0/hhneuron/biophysics/membraneProperties/naChans/naChan/m/q" scale="1"  color="#ff0000" timeScale="1ms"/>
+            <Line id="h" quantity="hhpop/0/hhneuron/biophysics/membraneProperties/naChans/naChan/h/q" scale="1"  color="#00dd00" timeScale="1ms"/>
+            <Line id="n" quantity="hhpop/0/hhneuron/biophysics/membraneProperties/kChans/kChan/n/q" scale="1"  color="#0000ff" timeScale="1ms"/>
+        </Display>
+
+        <Display id="d3" title="Hodgkin-Huxley Neuron: Current densities" timeScale="1ms" xmin="-5" xmax="55" ymin="-1" ymax="1">
+            <Line id="I_na (mA/cm2)" quantity="hhpop/0/hhneuron/biophysics/membraneProperties/naChans/iDensity" scale="1mA_per_cm2"  color="#00ffff" timeScale="1ms"/>
+            <Line id="I_k (mA/cm2)" quantity="hhpop/0/hhneuron/biophysics/membraneProperties/kChans/iDensity" scale="1mA_per_cm2"  color="#ffff00" timeScale="1ms"/>
+            <Line id="I_l (mA/cm2)" quantity="hhpop/0/hhneuron/biophysics/membraneProperties/leak/iDensity" scale="1mA_per_cm2"  color="#ff00ff" timeScale="1ms"/>
+        </Display>
+        
+        <Display id="d4" title="Hodgkin-Huxley Neuron: Conductances" timeScale="1ms" xmin="-5" xmax="55" ymin="-0.005" ymax="0.035">
+            <Line id="g_na (S/cm2)" quantity="hhpop/0/hhneuron/biophysics/membraneProperties/naChans/gDensity" scale="1S_per_cm2"  color="#00ffff" timeScale="1ms"/>
+            <Line id="g_k (S/cm2)" quantity="hhpop/0/hhneuron/biophysics/membraneProperties/kChans/gDensity" scale="1S_per_cm2"  color="#ffff00" timeScale="1ms"/>
+        </Display>
+
+        <Display id="d6" title="Hodgkin-Huxley Neuron: VClamp i (nA)" timeScale="1ms" xmin="-5" xmax="55" ymin="-0.0005" ymax="0.0025">
+            <Line id="VClamp i (nA)" quantity="hhpop/0/hhneuron/vClamp/i" scale="1nA"  color="#ffffff" timeScale="1ms"/>
+        </Display>
+        
+        <OutputFile id="of0" fileName="hh_tut_v.dat">
+            <OutputColumn id="v" quantity="hhpop/0/hhneuron/v"/> 
+        </OutputFile>  
+        
+        <OutputFile id="of1" fileName="hh_tut_g.dat">
+            <OutputColumn id="gna" quantity="hhpop/0/hhneuron/biophysics/membraneProperties/naChans/gDensity"/> 
+            <OutputColumn id="gk" quantity="hhpop/0/hhneuron/biophysics/membraneProperties/kChans/gDensity"/> 
+        </OutputFile>  
+    
+        <OutputFile id="of2" fileName="hh_tut_vc.dat">
+            <OutputColumn id="i" quantity="hhpop/0/hhneuron/vClamp/i"/> 
+        </OutputFile>  
+        
+    </Simulation>
+
+
+</Lems>
